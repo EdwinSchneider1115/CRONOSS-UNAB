@@ -68,11 +68,12 @@ public class PaginaPrincipalReal {
         // Logo UNAB
         ImageIcon logoUnab = new ImageIcon(PaginaPrincipalReal.class.getResource("/imagenes/logoUnab.png"));
         JLabel imagenLogo = new JLabel(logoUnab);
-        imagenLogo.setHorizontalAlignment(SwingConstants.CENTER);
+        imagenLogo.setBorder(BorderFactory.createEmptyBorder(20, -30, 30, 25));
 
-        JLabel cronosTitle = new JLabel("CRONOS-UNAB", SwingConstants.CENTER);
+        JLabel cronosTitle = new JLabel("CRONOSS-UNAB", SwingConstants.CENTER);
         cronosTitle.setFont(getKumbhSansFont(Font.BOLD, 20));
         cronosTitle.setForeground(Color.WHITE);
+        cronosTitle.setBorder(BorderFactory.createEmptyBorder(0, -45, 0, 0));
 
         logoPanel.add(imagenLogo, BorderLayout.CENTER);
         logoPanel.add(cronosTitle, BorderLayout.SOUTH);
@@ -83,6 +84,20 @@ public class PaginaPrincipalReal {
         JButton eventosEsteMesBtn = crearBotonMenuConIcono("• Eventos este mes", "/imagenes/iconoCasita.png", colorAzulBase);
         JButton calendarioBtn = crearBotonMenuConIcono("• Calendario de eventos", "/imagenes/iconoCasita.png", colorAzulBase);
         JButton validacionesBtn = crearBotonMenuConIcono("• Validaciones", "/imagenes/iconoCasita.png", colorAzulBase);
+
+        // ========== PANEL DE CONTENIDO PRINCIPAL ==========
+        JPanel contentPanel = new JPanel(new CardLayout()); // CAMBIA A CardLayout
+        contentPanel.setBackground(colorFondo);
+
+        // CORRECCIÓN: Usar el método correcto crearPanelEventosAsistidos
+        JPanel eventosPanel = crearPanelEventosAsistidos(colorFondo, colorTexto, colorSubtitulo, colorGrisCombo);
+
+        // Crear el panel de validaciones
+        JPanel validacionesPanel = Validaciones.crearPanelValidaciones();
+
+        // Agregar ambos paneles al contentPanel
+        contentPanel.add(eventosPanel, "eventos");
+        contentPanel.add(validacionesPanel, "validaciones");
 
         // Action Listeners para los botones
         ActionListener menuListener = new ActionListener() {
@@ -104,6 +119,15 @@ public class PaginaPrincipalReal {
                 botonClickeado.setFont(getKumbhSansFont(Font.BOLD, 16));
                 // CORRECCIÓN: Usar el array final
                 botonActivo[0] = botonClickeado;
+
+                // CAMBIAR CONTENIDO SEGÚN EL BOTÓN PRESIONADO
+                CardLayout cardLayout = (CardLayout) contentPanel.getLayout();
+
+                if (botonClickeado.getText().equals("• Validaciones")) {
+                    cardLayout.show(contentPanel, "validaciones");
+                } else {
+                    cardLayout.show(contentPanel, "eventos");
+                }
             }
         };
 
@@ -167,10 +191,19 @@ public class PaginaPrincipalReal {
         eventosAsistidosBtn.setFont(getKumbhSansFont(Font.BOLD, 16));
         botonActivo[0] = eventosAsistidosBtn;
 
-        // ========== PANEL DE CONTENIDO PRINCIPAL ==========
-        JPanel contentPanel = new JPanel(new BorderLayout());
-        contentPanel.setBackground(colorFondo);
-        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        // Ensamblar mainPanel
+        mainPanel.add(leftMenuPanel, BorderLayout.WEST);
+        mainPanel.add(contentPanel, BorderLayout.CENTER);
+
+        frame.add(mainPanel);
+        frame.setVisible(true);
+    }
+
+    // MÉTODO PARA CREAR EL PANEL DE EVENTOS ASISTIDOS
+    private static JPanel crearPanelEventosAsistidos(Color colorFondo, Color colorTexto, Color colorSubtitulo, Color colorGrisCombo) {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(colorFondo);
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         // Header con campanita y botón salir
         JPanel topBarPanel = new JPanel(new BorderLayout());
@@ -306,16 +339,11 @@ public class PaginaPrincipalReal {
         tablePanel.add(scrollPane, BorderLayout.CENTER);
 
         // Ensamblar contentPanel
-        contentPanel.add(topBarPanel, BorderLayout.NORTH);
-        contentPanel.add(headerPanel, BorderLayout.CENTER);
-        contentPanel.add(tablePanel, BorderLayout.SOUTH);
+        panel.add(topBarPanel, BorderLayout.NORTH);
+        panel.add(headerPanel, BorderLayout.CENTER);
+        panel.add(tablePanel, BorderLayout.SOUTH);
 
-        // Ensamblar mainPanel
-        mainPanel.add(leftMenuPanel, BorderLayout.WEST);
-        mainPanel.add(contentPanel, BorderLayout.CENTER);
-
-        frame.add(mainPanel);
-        frame.setVisible(true);
+        return panel;
     }
 
     // MÉTODO PARA CARGAR LA FUENTE KUMBH SANS
@@ -347,7 +375,7 @@ public class PaginaPrincipalReal {
     }
 
     // MÉTODO PARA OBTENER LA FUENTE KUMBH SANS
-    private static Font getKumbhSansFont(int estilo, int tamaño) {
+    public static Font getKumbhSansFont(int estilo, int tamaño) {
         // Si la fuente se cargó correctamente, usarla
         if (kumbhSansPlain != null) {
             return kumbhSansPlain.deriveFont(estilo, tamaño);
@@ -369,10 +397,10 @@ public class PaginaPrincipalReal {
         boton.setFont(getKumbhSansFont(Font.PLAIN, 16));
         boton.setForeground(Color.WHITE);
         boton.setBackground(colorBase);
-        
+
         // MARGENES AJUSTADOS: Menos padding izquierdo para pegar a la izquierda
         boton.setBorder(BorderFactory.createEmptyBorder(12, 15, 12, 20));
-        
+
         boton.setAlignmentX(Component.LEFT_ALIGNMENT);
         boton.setMaximumSize(new Dimension(320, 45)); // Ancho completo
         boton.setFocusPainted(false);
