@@ -14,6 +14,9 @@ public class CRONOSS {
     // Mapa para almacenar los usuarios (ID, Contraseña)
     private static Map<String, String> usuarios = new HashMap<>();
 
+    // El frame debe ser una variable estática para poder cerrarla desde el listener.
+    private static JFrame loginFrame;
+
     public static void main(String[] args) {
         // Cargar usuarios existentes al iniciar la aplicación
         cargarUsuarios();
@@ -39,9 +42,10 @@ public class CRONOSS {
             }
             if (usuarios.isEmpty()) {
                 usuarios.put("U00124073", "12345");
-                guardarUsuario("U00124073", "12345");
+                guardarUsuario("U00124073", "12345"); // Guardar el usuario por defecto
             }
         } catch (FileNotFoundException e) {
+            // Si el archivo no existe, crea el usuario por defecto
             usuarios.put("U00124073", "12345");
             guardarUsuario("U00124073", "12345");
         } catch (IOException e) {
@@ -50,6 +54,8 @@ public class CRONOSS {
     }
 
     private static void guardarUsuario(String id, String password) {
+        // Usamos false para FileWriter (sobrescribe) para reescribir la lista completa,
+        // o true (apendiza) si solo queremos agregar uno nuevo. Aquí apendizamos si se crea uno nuevo.
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(ARCHIVO_USUARIOS, true))) {
             bw.write(id + ":" + password);
             bw.newLine();
@@ -58,15 +64,15 @@ public class CRONOSS {
         }
     }
 
-    // --- Lógica de la Interfaz Gráfica (Altura de Frame Corregida) ---
+    // --- Lógica de la Interfaz Gráfica ---
 
-    private static void createAndShowGUI() {
+    public static void createAndShowGUI() {
         // Crear el frame principal
-        JFrame frame = new JFrame("CRONOS - Login");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(450, 600); // 👈 ¡MODIFICACIÓN CLAVE: Aumentamos la altura!
-        frame.setLocationRelativeTo(null);
-        frame.setResizable(false);
+        loginFrame = new JFrame("CRONOS - Login"); // Asignar a la variable estática
+        loginFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        loginFrame.setSize(450, 600);
+        loginFrame.setLocationRelativeTo(null);
+        loginFrame.setResizable(false);
 
         // Panel principal con gradiente o color sólido
         JPanel mainPanel = new JPanel();
@@ -74,7 +80,6 @@ public class CRONOSS {
         mainPanel.setBackground(new Color(245, 245, 245));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // Título centrado y estilizado
         JPanel topPanel = new JPanel();
         topPanel.setBackground(new Color(245, 245, 245));
         topPanel.setBorder(BorderFactory.createEmptyBorder(40, 0, 30, 0));
@@ -151,26 +156,32 @@ public class CRONOSS {
         loginButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         loginButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
+        // Mensaje inferior/Crear cuenta
+        JLabel createAccountLabel = new JLabel("<html><u>Crear nueva cuenta</u></html>");
+        createAccountLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        createAccountLabel.setForeground(new Color(0, 120, 215));
+        createAccountLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        createAccountLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        JLabel bottomLabel = new JLabel("¿Olvidaste tu contraseña? Dirígete a Multimedia");
+        bottomLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        bottomLabel.setForeground(new Color(150, 150, 150));
+        bottomLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
         // Efectos hover para el botón
         loginButton.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 loginButton.setBackground(new Color(0, 100, 190));
                 loginButton.setForeground(Color.WHITE);
             }
+
             public void mouseExited(java.awt.event.MouseEvent evt) {
                 loginButton.setBackground(new Color(0, 120, 215));
                 loginButton.setForeground(Color.WHITE);
             }
         });
 
-        // Mensaje/Enlace para crear cuenta
-        JLabel createAccountLabel = new JLabel("<html><u>Crear nueva cuenta</u></html>");
-        createAccountLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        createAccountLabel.setForeground(new Color(0, 120, 215));
-        createAccountLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        createAccountLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-        // Agregar componentes al panel de entrada (inputPanel)
+        // Agregar componentes al panel de entrada
         inputPanel.add(idLabel);
         inputPanel.add(Box.createVerticalStrut(8));
         inputPanel.add(idField);
@@ -179,20 +190,21 @@ public class CRONOSS {
         inputPanel.add(Box.createVerticalStrut(8));
         inputPanel.add(passField);
         inputPanel.add(Box.createVerticalStrut(5));
-        inputPanel.add(createAccountLabel);
-        inputPanel.add(Box.createVerticalStrut(20));
-
-        // Agregar componentes al panel central (centerPanel) en orden
+        
+        // Agregar componentes al panel central en orden
         centerPanel.add(welcomeLabel);
         centerPanel.add(Box.createVerticalStrut(8));
         centerPanel.add(descLabel);
         centerPanel.add(Box.createVerticalStrut(30));
-        centerPanel.add(inputPanel); 
+        centerPanel.add(inputPanel);
         centerPanel.add(Box.createVerticalStrut(10));
         centerPanel.add(loginButton);
-        centerPanel.add(Box.createVerticalStrut(40));
+        centerPanel.add(Box.createVerticalStrut(20)); // Espacio entre botón y crear cuenta
+        centerPanel.add(createAccountLabel);
+        centerPanel.add(Box.createVerticalStrut(20));
+        centerPanel.add(bottomLabel);
 
-        // 1. Action listener para el botón de Login
+        // 1. Action listener para el botón de Login (LÓGICA CLAVE)
         loginButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -200,18 +212,27 @@ public class CRONOSS {
                 String password = new String(passField.getPassword());
 
                 if (usuarios.containsKey(id) && usuarios.get(id).equals(password)) {
-                    JOptionPane.showMessageDialog(frame,
-                            "¡Login exitoso! Bienvenido, " + id,
+
+                    // Notificación
+                    JOptionPane.showMessageDialog(loginFrame,
+                            "¡Login exitoso! Abriendo la página principal.",
                             "Éxito",
                             JOptionPane.INFORMATION_MESSAGE);
-                    idField.setText("");
-                    passField.setText("");
-                    idField.requestFocusInWindow();
+
+                    // 1. Cierra el frame de Login
+                    loginFrame.dispose();
+
+                    // 2. Abre la ventana principal de la aplicación.
+                    PaginaPrincipalReal.createAndShowGUI(); // Llamada al método estático
+
                 } else {
-                    JOptionPane.showMessageDialog(frame,
+                    JOptionPane.showMessageDialog(loginFrame,
                             "ID o contraseña incorrectos",
                             "Error",
                             JOptionPane.ERROR_MESSAGE);
+                    idField.setText("");
+                    passField.setText("");
+                    idField.requestFocusInWindow();
                 }
             }
         });
@@ -219,7 +240,7 @@ public class CRONOSS {
         // 2. Action Listener para el enlace "Crear nueva cuenta"
         createAccountLabel.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                crearNuevaCuenta(frame);
+                crearNuevaCuenta(loginFrame);
             }
         });
 
@@ -237,16 +258,13 @@ public class CRONOSS {
         // Ensamblar frame
         mainPanel.add(topPanel, BorderLayout.NORTH);
         mainPanel.add(centerPanel, BorderLayout.CENTER);
-        frame.add(mainPanel);
-        frame.setVisible(true);
+        loginFrame.add(mainPanel);
+        loginFrame.setVisible(true);
 
         // Enfocar el campo ID al iniciar
         idField.requestFocusInWindow();
     }
 
-    /**
-     * Muestra un diálogo simple para que el usuario cree una nueva cuenta.
-     */
     private static void crearNuevaCuenta(JFrame parentFrame) {
         JTextField newIdField = new JTextField(10);
         JPasswordField newPassField = new JPasswordField(10);

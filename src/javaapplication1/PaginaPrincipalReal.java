@@ -21,7 +21,7 @@ public class PaginaPrincipalReal {
         });
     }
 
-    private static void createAndShowGUI() {
+    static void createAndShowGUI() {
         // 1. PRIMERO cargar la fuente
         cargarFuenteKumbhSans();
 
@@ -86,19 +86,26 @@ public class PaginaPrincipalReal {
         JButton validacionesBtn = crearBotonMenuConIcono("• Validaciones", "/imagenes/iconoCasita.png", colorAzulBase);
 
         // ========== PANEL DE CONTENIDO PRINCIPAL ==========
-        JPanel contentPanel = new JPanel(new CardLayout()); // CAMBIA A CardLayout
+        JPanel contentPanel = new JPanel(new CardLayout());
         contentPanel.setBackground(colorFondo);
 
         // CORRECCIÓN: Usar el método correcto crearPanelEventosAsistidos
         JPanel eventosPanel = crearPanelEventosAsistidos(colorFondo, colorTexto, colorSubtitulo, colorGrisCombo);
+        JPanel horasLibresPanel = crearPanelHorasLibres(colorFondo, colorTexto, colorSubtitulo);
 
         // Crear el panel de validaciones
         JPanel validacionesPanel = Validaciones.crearPanelValidaciones();
 
-        // Agregar ambos paneles al contentPanel
-        contentPanel.add(eventosPanel, "eventos");
-        contentPanel.add(validacionesPanel, "validaciones");
+        JPanel eventosEsteMesPanel = new_eventos.crearPanelCronogramaEventos(colorFondo, colorTexto, colorSubtitulo, colorGrisCombo);
 
+        //Panel de calendario
+        JPanel calendarioPanel = PanelCalendario.crearPanelCalendario();
+
+        contentPanel.add(eventosPanel, "eventos");
+        contentPanel.add(horasLibresPanel, "horas");
+        contentPanel.add(validacionesPanel, "validaciones");
+        contentPanel.add(calendarioPanel, "calendario");
+        contentPanel.add(eventosEsteMesPanel, "eventosEsteMes");
         // Action Listeners para los botones
         ActionListener menuListener = new ActionListener() {
             @Override
@@ -122,9 +129,16 @@ public class PaginaPrincipalReal {
 
                 // CAMBIAR CONTENIDO SEGÚN EL BOTÓN PRESIONADO
                 CardLayout cardLayout = (CardLayout) contentPanel.getLayout();
+                String textoBoton = botonClickeado.getText();
 
-                if (botonClickeado.getText().equals("• Validaciones")) {
+                if (textoBoton.equals("• Horas Libres")) {
+                    cardLayout.show(contentPanel, "horas");
+                } else if (textoBoton.equals("• Validaciones")) {
                     cardLayout.show(contentPanel, "validaciones");
+                } else if (textoBoton.equals("• Calendario de eventos")) {
+                    cardLayout.show(contentPanel, "calendario");
+                } else if (textoBoton.equals("• Eventos este mes")) {
+                    cardLayout.show(contentPanel, "eventosEsteMes");
                 } else {
                     cardLayout.show(contentPanel, "eventos");
                 }
@@ -199,26 +213,178 @@ public class PaginaPrincipalReal {
         frame.setVisible(true);
     }
 
-    // MÉTODO PARA CREAR EL PANEL DE EVENTOS ASISTIDOS
-    private static JPanel crearPanelEventosAsistidos(Color colorFondo, Color colorTexto, Color colorSubtitulo, Color colorGrisCombo) {
+   // MÉTODO PARA CREAR EL PANEL DE EVENTOS ASISTIDOS
+private static JPanel crearPanelEventosAsistidos(Color colorFondo, Color colorTexto, Color colorSubtitulo, Color colorGrisCombo) {
+    JPanel panel = new JPanel(new BorderLayout());
+    panel.setBackground(colorFondo);
+    panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+    // Header con campanita y botón salir
+    JPanel topBarPanel = new JPanel(new BorderLayout());
+    topBarPanel.setBackground(colorFondo);
+    topBarPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
+
+    // Panel derecho con campanita y salir
+    JPanel rightTopPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+    rightTopPanel.setBackground(colorFondo);
+
+    // Icono campanita
+    ImageIcon campanitaIcon = new ImageIcon(PaginaPrincipalReal.class.getResource("/imagenes/campanita.png"));
+    JLabel campanitaLabel = new JLabel(campanitaIcon);
+
+    // Botón Salir
+    JButton salirButton = new JButton("Salir");
+    salirButton.setFont(getKumbhSansFont(Font.BOLD, 14));
+    salirButton.setForeground(Color.WHITE);
+    salirButton.setBackground(new Color(80, 156, 219));
+    salirButton.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
+    salirButton.setFocusPainted(false);
+    salirButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+    salirButton.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            System.exit(0);
+        }
+    });
+
+    rightTopPanel.add(campanitaLabel);
+    rightTopPanel.add(salirButton);
+
+    topBarPanel.add(rightTopPanel, BorderLayout.EAST);
+
+    // Header principal
+    JPanel headerPanel = new JPanel();
+    headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
+    headerPanel.setBackground(colorFondo);
+    headerPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
+
+    JLabel subtitleLabel = new JLabel("Maneja de forma eficaz y rapida tu control de horas libres en la UNAB");
+    subtitleLabel.setFont(getKumbhSansFont(Font.PLAIN, 14));
+    subtitleLabel.setForeground(colorSubtitulo);
+    subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+    subtitleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 50));
+
+    JPanel titleComboPanel = new JPanel(new BorderLayout());
+    titleComboPanel.setBackground(colorFondo);
+
+    JLabel titleLabel = new JLabel("Eventos Asistidos En el Semestre");
+    titleLabel.setFont(getKumbhSansFont(Font.BOLD, 28));
+    titleLabel.setForeground(colorTexto);
+    titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 250, 0, 0));
+
+    JPanel semestrePanel = new JPanel();
+    semestrePanel.setLayout(new BoxLayout(semestrePanel, BoxLayout.Y_AXIS));
+    semestrePanel.setBackground(colorFondo);
+    semestrePanel.setBorder(BorderFactory.createEmptyBorder(5, 0, 0, 0));
+
+    JLabel semestreLabel = new JLabel("Seleccionar Semestre");
+    semestreLabel.setFont(getKumbhSansFont(Font.BOLD, 14));
+    semestreLabel.setForeground(colorSubtitulo);
+    semestreLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
+
+    JComboBox<String> semestreCombo = new JComboBox<>(new String[]{
+        "Seleccione Semestre", "2024-1", "2024-2", "2023-2"
+    });
+    semestreCombo.setMaximumSize(new Dimension(250, 40));
+    semestreCombo.setFont(getKumbhSansFont(Font.PLAIN, 14));
+    semestreCombo.setBackground(colorGrisCombo);
+    semestreCombo.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
+            BorderFactory.createEmptyBorder(8, 12, 8, 12)
+    ));
+    semestreCombo.setAlignmentX(Component.RIGHT_ALIGNMENT);
+
+    semestrePanel.add(semestreLabel);
+    semestrePanel.add(Box.createVerticalStrut(5));
+    semestrePanel.add(semestreCombo);
+
+    titleComboPanel.add(titleLabel, BorderLayout.CENTER);
+    titleComboPanel.add(semestrePanel, BorderLayout.EAST);
+
+    headerPanel.add(subtitleLabel);
+    headerPanel.add(Box.createVerticalStrut(5));
+    headerPanel.add(titleComboPanel);
+
+    // Panel de tabla
+    JPanel tablePanel = new JPanel(new BorderLayout());
+    tablePanel.setBackground(Color.WHITE);
+    tablePanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(220, 220, 220), 1),
+            BorderFactory.createEmptyBorder(25, 25, 25, 25)
+    ));
+
+    // ✅ TABLA MODIFICADA CON CLAVES DE 4 DÍGITOS
+    String[] columnNames = {"Evento Asistido", "Horas libres", "Clave"};
+    Object[][] data = {
+        {"• Semana de la ingeniería", "10 horas libres", "4852"},
+        {"• Ulibro", "15 horas libres", "7193"},
+        {"• Conservatorio de fsdgsff", "4 horas libres", "2367"},
+        {"• Taller de lectura", "2 horas libres", "9041"}
+    };
+
+    DefaultTableModel model = new DefaultTableModel(data, columnNames) {
+        @Override
+        public boolean isCellEditable(int row, int column) {
+            return false;
+        }
+
+        @Override
+        public Class<?> getColumnClass(int columnIndex) {
+            return String.class;
+        }
+    };
+
+    JTable eventsTable = new JTable(model);
+    eventsTable.setRowHeight(50);
+    eventsTable.setFont(getKumbhSansFont(Font.PLAIN, 14));
+    eventsTable.setForeground(colorTexto);
+    eventsTable.setBackground(Color.WHITE);
+    eventsTable.setShowGrid(true);
+    eventsTable.setGridColor(new Color(230, 230, 230));
+
+    eventsTable.getTableHeader().setFont(getKumbhSansFont(Font.BOLD, 14));
+    eventsTable.getTableHeader().setBackground(new Color(250, 250, 250));
+    eventsTable.getTableHeader().setForeground(colorTexto);
+    eventsTable.getTableHeader().setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(220, 220, 220)));
+
+    // Centrar todas las celdas
+    DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+    centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+    for (int i = 0; i < eventsTable.getColumnCount(); i++) {
+        eventsTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
+    }
+
+    JScrollPane scrollPane = new JScrollPane(eventsTable);
+    scrollPane.setBorder(BorderFactory.createEmptyBorder());
+    scrollPane.getViewport().setBackground(Color.WHITE);
+    scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+
+    tablePanel.add(scrollPane, BorderLayout.CENTER);
+
+    // Ensamblar contentPanel
+    panel.add(topBarPanel, BorderLayout.NORTH);
+    panel.add(headerPanel, BorderLayout.CENTER);
+    panel.add(tablePanel, BorderLayout.SOUTH);
+
+    return panel;
+}
+
+    private static JPanel crearPanelHorasLibres(Color colorFondo, Color colorTexto, Color colorSubtitulo) {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(colorFondo);
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // Header con campanita y botón salir
         JPanel topBarPanel = new JPanel(new BorderLayout());
         topBarPanel.setBackground(colorFondo);
         topBarPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
 
-        // Panel derecho con campanita y salir
         JPanel rightTopPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         rightTopPanel.setBackground(colorFondo);
 
-        // Icono campanita
         ImageIcon campanitaIcon = new ImageIcon(PaginaPrincipalReal.class.getResource("/imagenes/campanita.png"));
         JLabel campanitaLabel = new JLabel(campanitaIcon);
 
-        // Botón Salir
         JButton salirButton = new JButton("Salir");
         salirButton.setFont(getKumbhSansFont(Font.BOLD, 14));
         salirButton.setForeground(Color.WHITE);
@@ -227,121 +393,116 @@ public class PaginaPrincipalReal {
         salirButton.setFocusPainted(false);
         salirButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
+        salirButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                System.exit(0);
+            }
+        });
+
         rightTopPanel.add(campanitaLabel);
         rightTopPanel.add(salirButton);
-
         topBarPanel.add(rightTopPanel, BorderLayout.EAST);
 
-        // Header principal
         JPanel headerPanel = new JPanel();
         headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
         headerPanel.setBackground(colorFondo);
-        headerPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
 
         JLabel subtitleLabel = new JLabel("Maneja de forma eficaz y rapida tu control de horas libres en la UNAB");
         subtitleLabel.setFont(getKumbhSansFont(Font.PLAIN, 14));
         subtitleLabel.setForeground(colorSubtitulo);
         subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        subtitleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 50));
 
-        JPanel titleComboPanel = new JPanel(new BorderLayout());
-        titleComboPanel.setBackground(colorFondo);
-
-        JLabel titleLabel = new JLabel("Eventos Asistidos En el Semestre");
-        titleLabel.setFont(getKumbhSansFont(Font.BOLD, 28));
+        JLabel titleLabel = new JLabel("Bienvenido, Edwin");
+        titleLabel.setFont(getKumbhSansFont(Font.BOLD, 32));
         titleLabel.setForeground(colorTexto);
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 250, 0, 0));
-
-        JPanel semestrePanel = new JPanel();
-        semestrePanel.setLayout(new BoxLayout(semestrePanel, BoxLayout.Y_AXIS));
-        semestrePanel.setBackground(colorFondo);
-        semestrePanel.setBorder(BorderFactory.createEmptyBorder(5, 0, 0, 0));
-
-        JLabel semestreLabel = new JLabel("Seleccionar Semestre");
-        semestreLabel.setFont(getKumbhSansFont(Font.BOLD, 14));
-        semestreLabel.setForeground(colorSubtitulo);
-        semestreLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
-
-        JComboBox<String> semestreCombo = new JComboBox<>(new String[]{
-            "Seleccione Semestre", "2024-1", "2024-2", "2023-2"
-        });
-        semestreCombo.setMaximumSize(new Dimension(250, 40));
-        semestreCombo.setFont(getKumbhSansFont(Font.PLAIN, 14));
-        semestreCombo.setBackground(colorGrisCombo);
-        semestreCombo.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
-                BorderFactory.createEmptyBorder(8, 12, 8, 12)
-        ));
-        semestreCombo.setAlignmentX(Component.RIGHT_ALIGNMENT);
-
-        semestrePanel.add(semestreLabel);
-        semestrePanel.add(Box.createVerticalStrut(5));
-        semestrePanel.add(semestreCombo);
-
-        titleComboPanel.add(titleLabel, BorderLayout.CENTER);
-        titleComboPanel.add(semestrePanel, BorderLayout.EAST);
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 20, 0));
 
         headerPanel.add(subtitleLabel);
-        headerPanel.add(Box.createVerticalStrut(5));
-        headerPanel.add(titleComboPanel);
+        headerPanel.add(titleLabel);
 
-        // Panel de tabla
-        JPanel tablePanel = new JPanel(new BorderLayout());
-        tablePanel.setBackground(Color.WHITE);
-        tablePanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(220, 220, 220), 1),
-                BorderFactory.createEmptyBorder(25, 25, 25, 25)
+        JPanel dashboardPanel = new JPanel(new BorderLayout(20, 0));
+        dashboardPanel.setBackground(colorFondo);
+
+        JPanel graficaCard = new JPanel();
+        graficaCard.setLayout(new BoxLayout(graficaCard, BoxLayout.Y_AXIS));
+        graficaCard.setBackground(new Color(238, 238, 238));
+        graficaCard.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(210, 210, 210), 2),
+                BorderFactory.createEmptyBorder(20, 20, 20, 20)
         ));
 
-        // Crear tabla exactamente como en la imagen
-        String[] columnNames = {"Evento Asistido", "Horas libres"};
-        Object[][] data = {
-            {"• Semana de la ingeniería", "10 horas libres"},
-            {"• Ulibro", "15 horas libres"},
-            {"• Conservatorio de fsdgsff", "4 horas libres"},
-            {"• Taller de lectura", "2 horas libres"}
-        };
+        String[] meses = {"Julio", "Agosto", "Septiembre", "Octubre", "Noviembre"};
+        int[] valores = {0, 4, 10, 2, 0};
 
-        DefaultTableModel model = new DefaultTableModel(data, columnNames) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
+        GraficaBarrasPanel graficaPanel = new GraficaBarrasPanel(meses, valores);
+        graficaPanel.setPreferredSize(new Dimension(600, 320));
+        graficaCard.add(graficaPanel);
+        graficaCard.add(Box.createVerticalStrut(20));
 
-            @Override
-            public Class<?> getColumnClass(int columnIndex) {
-                return String.class;
-            }
-        };
+        JPanel barraProgresoCard = new JPanel();
+        barraProgresoCard.setBackground(new Color(238, 238, 238));
+        barraProgresoCard.setLayout(new BoxLayout(barraProgresoCard, BoxLayout.Y_AXIS));
+        barraProgresoCard.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(210, 210, 210), 2),
+                BorderFactory.createEmptyBorder(15, 20, 15, 20)
+        ));
 
-        JTable eventsTable = new JTable(model);
-        eventsTable.setRowHeight(50);
-        eventsTable.setFont(getKumbhSansFont(Font.PLAIN, 14));
-        eventsTable.setForeground(colorTexto);
-        eventsTable.setBackground(Color.WHITE);
-        eventsTable.setShowGrid(true);
-        eventsTable.setGridColor(new Color(230, 230, 230));
+        BarraProgresoHorasPanel barraPanel = new BarraProgresoHorasPanel(90, 30);
+        barraPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        eventsTable.getTableHeader().setFont(getKumbhSansFont(Font.BOLD, 14));
-        eventsTable.getTableHeader().setBackground(new Color(250, 250, 250));
-        eventsTable.getTableHeader().setForeground(colorTexto);
-        eventsTable.getTableHeader().setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(220, 220, 220)));
+        JPanel marcasPanel = new JPanel(new BorderLayout());
+        marcasPanel.setBackground(new Color(238, 238, 238));
+        JLabel cero = new JLabel("0 Horas");
+        cero.setFont(getKumbhSansFont(Font.PLAIN, 14));
+        JLabel treinta = new JLabel("30 Horas", SwingConstants.CENTER);
+        treinta.setFont(getKumbhSansFont(Font.PLAIN, 14));
+        JLabel noventa = new JLabel("90 Horas", SwingConstants.RIGHT);
+        noventa.setFont(getKumbhSansFont(Font.PLAIN, 14));
 
-        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
-        centerRenderer.setVerticalAlignment(JLabel.CENTER);
-        eventsTable.setDefaultRenderer(String.class, centerRenderer);
+        marcasPanel.add(cero, BorderLayout.WEST);
+        marcasPanel.add(treinta, BorderLayout.CENTER);
+        marcasPanel.add(noventa, BorderLayout.EAST);
 
-        JScrollPane scrollPane = new JScrollPane(eventsTable);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder());
-        scrollPane.getViewport().setBackground(Color.WHITE);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        barraProgresoCard.add(barraPanel);
+        barraProgresoCard.add(Box.createVerticalStrut(10));
+        barraProgresoCard.add(marcasPanel);
 
-        tablePanel.add(scrollPane, BorderLayout.CENTER);
+        JPanel rightCard = new JPanel();
+        rightCard.setLayout(new BoxLayout(rightCard, BoxLayout.Y_AXIS));
+        rightCard.setBackground(new Color(238, 238, 238));
+        rightCard.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(210, 210, 210), 2),
+                BorderFactory.createEmptyBorder(20, 20, 20, 20)
+        ));
 
-        // Ensamblar contentPanel
+        JLabel contadorTitulo = new JLabel("Contador de Horas");
+        contadorTitulo.setFont(getKumbhSansFont(Font.BOLD, 20));
+        contadorTitulo.setForeground(colorTexto);
+
+        JLabel eventoLabel = new JLabel("• Semana de la ingenieria: 10 horas libres");
+        eventoLabel.setFont(getKumbhSansFont(Font.PLAIN, 16));
+        eventoLabel.setForeground(colorTexto);
+        eventoLabel.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
+
+        rightCard.add(contadorTitulo);
+        rightCard.add(eventoLabel);
+        rightCard.add(Box.createVerticalGlue());
+
+        JPanel leftCol = new JPanel();
+        leftCol.setLayout(new BoxLayout(leftCol, BoxLayout.Y_AXIS));
+        leftCol.setBackground(colorFondo);
+        leftCol.add(graficaCard);
+        leftCol.add(Box.createVerticalStrut(20));
+        leftCol.add(barraProgresoCard);
+
+        dashboardPanel.add(leftCol, BorderLayout.CENTER);
+        dashboardPanel.add(rightCard, BorderLayout.EAST);
+
         panel.add(topBarPanel, BorderLayout.NORTH);
         panel.add(headerPanel, BorderLayout.CENTER);
-        panel.add(tablePanel, BorderLayout.SOUTH);
+        panel.add(dashboardPanel, BorderLayout.SOUTH);
 
         return panel;
     }
@@ -424,5 +585,121 @@ public class PaginaPrincipalReal {
         });
 
         return boton;
+    }
+
+    private static class GraficaBarrasPanel extends JPanel {
+
+        private final String[] etiquetas;
+        private final int[] valores;
+
+        public GraficaBarrasPanel(String[] etiquetas, int[] valores) {
+            this.etiquetas = etiquetas;
+            this.valores = valores;
+            setBackground(new Color(252, 247, 235));
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            int padding = 40;
+            int axisBottom = getHeight() - padding - 30;
+            int axisTop = padding;
+            int axisLeft = padding + 20;
+            int axisRight = getWidth() - padding;
+
+            g2.setColor(Color.WHITE);
+            g2.fillRoundRect(axisLeft - 30, axisTop - 30, axisRight - axisLeft + 60, axisBottom - axisTop + 70, 20, 20);
+            g2.setColor(new Color(94, 162, 222));
+            g2.setStroke(new BasicStroke(3));
+            g2.drawRoundRect(axisLeft - 30, axisTop - 30, axisRight - axisLeft + 60, axisBottom - axisTop + 70, 20, 20);
+
+            g2.setColor(new Color(220, 220, 220));
+            g2.setStroke(new BasicStroke(1));
+            for (int i = 0; i <= 5; i++) {
+                int y = axisTop + i * (axisBottom - axisTop) / 5;
+                g2.drawLine(axisLeft, y, axisRight, y);
+            }
+
+            g2.setColor(new Color(187, 154, 95));
+            int barWidth = (axisRight - axisLeft) / (etiquetas.length * 2);
+            int maxValor = 10;
+            for (int i = 0; i < valores.length; i++) {
+                int x = axisLeft + (2 * i + 1) * barWidth;
+                int altura = (int) ((double) valores[i] / maxValor * (axisBottom - axisTop));
+                int y = axisBottom - altura;
+                g2.fillRoundRect(x, y, barWidth, altura, 20, 20);
+            }
+
+            g2.setFont(getKumbhSansFont(Font.PLAIN, 14));
+            g2.setColor(Color.DARK_GRAY);
+            for (int i = 0; i <= 5; i++) {
+                int valor = i * 2;
+                int y = axisBottom - i * (axisBottom - axisTop) / 5;
+                g2.drawString(String.valueOf(valor), axisLeft - 30, y + 5);
+            }
+
+            for (int i = 0; i < etiquetas.length; i++) {
+                int x = axisLeft + (2 * i + 1) * barWidth + barWidth / 2;
+                int y = axisBottom + 20;
+                drawCenteredString(g2, etiquetas[i], x, y);
+            }
+
+            g2.dispose();
+        }
+
+        private void drawCenteredString(Graphics2D g2, String texto, int x, int y) {
+            FontMetrics metrics = g2.getFontMetrics();
+            int ancho = metrics.stringWidth(texto);
+            g2.drawString(texto, x - ancho / 2, y);
+        }
+    }
+
+    private static class BarraProgresoHorasPanel extends JPanel {
+
+        private final int maximo;
+        private int valorActual;
+
+        public BarraProgresoHorasPanel(int maximo, int valorActual) {
+            this.maximo = maximo;
+            this.valorActual = valorActual;
+            setPreferredSize(new Dimension(600, 40));
+            setBackground(new Color(238, 238, 238));
+        }
+
+        public void setValorActual(int valorActual) {
+            this.valorActual = valorActual;
+            repaint();
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            int width = getWidth();
+            int height = getHeight();
+            int arc = 20;
+
+            g2.setColor(Color.WHITE);
+            g2.fillRoundRect(0, 0, width, height, arc, arc);
+            g2.setColor(new Color(220, 220, 220));
+            g2.setStroke(new BasicStroke(2));
+            g2.drawRoundRect(0, 0, width - 1, height - 1, arc, arc);
+
+            double porcentaje = (double) valorActual / maximo;
+            int fillWidth = (int) (porcentaje * width);
+            int fill = Math.max(fillWidth - 4, 0);
+
+            if (fill > 0) {
+                g2.setColor(new Color(186, 251, 155));
+                g2.fillRoundRect(2, 2, fill, height - 4, arc, arc);
+            }
+
+            g2.dispose();
+        }
     }
 }
