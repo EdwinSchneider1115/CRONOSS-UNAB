@@ -7,4 +7,5 @@ COPY lib/ lib/
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-cp", "app.jar:lib/*", "javaapplication1.PaginaPrincipalReal"]
+
