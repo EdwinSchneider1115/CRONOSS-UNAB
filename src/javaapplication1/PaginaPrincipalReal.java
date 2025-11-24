@@ -83,7 +83,7 @@ public class PaginaPrincipalReal {
         JButton eventosAsistidosBtn = crearBotonMenuConIcono("• Eventos Asistidos", "/imagenes/iconoCasita.png", colorAzulBase);
         JButton eventosEsteMesBtn = crearBotonMenuConIcono("• Eventos este mes", "/imagenes/iconoCasita.png", colorAzulBase);
         JButton calendarioBtn = crearBotonMenuConIcono("• Calendario de eventos", "/imagenes/iconoCasita.png", colorAzulBase);
-        JButton validacionesBtn = crearBotonMenuConIcono("• Validaciones", "/imagenes/iconoCasita.png", colorAzulBase);
+    
 
         // ========== PANEL DE CONTENIDO PRINCIPAL ==========
         JPanel contentPanel = new JPanel(new CardLayout());
@@ -94,7 +94,7 @@ public class PaginaPrincipalReal {
         JPanel horasLibresPanel = crearPanelHorasLibres(colorFondo, colorTexto, colorSubtitulo);
 
         // Crear el panel de validaciones
-        JPanel validacionesPanel = Validaciones.crearPanelValidaciones();
+       
 
         JPanel eventosEsteMesPanel = new_eventos.crearPanelCronogramaEventos(colorFondo, colorTexto, colorSubtitulo, colorGrisCombo);
 
@@ -103,7 +103,7 @@ public class PaginaPrincipalReal {
 
         contentPanel.add(eventosPanel, "eventos");
         contentPanel.add(horasLibresPanel, "horas");
-        contentPanel.add(validacionesPanel, "validaciones");
+        
         contentPanel.add(calendarioPanel, "calendario");
         contentPanel.add(eventosEsteMesPanel, "eventosEsteMes");
         // Action Listeners para los botones
@@ -149,7 +149,8 @@ public class PaginaPrincipalReal {
         eventosAsistidosBtn.addActionListener(menuListener);
         eventosEsteMesBtn.addActionListener(menuListener);
         calendarioBtn.addActionListener(menuListener);
-        validacionesBtn.addActionListener(menuListener);
+       
+       
 
         // Agregar botones al panel de botones
         botonesPanel.add(Box.createVerticalStrut(10));
@@ -161,7 +162,6 @@ public class PaginaPrincipalReal {
         botonesPanel.add(Box.createVerticalStrut(8));
         botonesPanel.add(calendarioBtn);
         botonesPanel.add(Box.createVerticalStrut(8));
-        botonesPanel.add(validacionesBtn);
         botonesPanel.add(Box.createVerticalGlue());
 
         // Panel de cuenta con imagen
